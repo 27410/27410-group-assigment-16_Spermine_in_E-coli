@@ -8,11 +8,7 @@ import requests
 import logging 
 import csv 
 
-import time 
-
-start = time.perf_counter()
-
-level = logging.DEBUG	
+level = logging.INFO	
 fmt = '[%(levelname)s] %(asctime)s - %(message)s'
 logging.basicConfig(level =level, format=fmt)
 
@@ -91,6 +87,12 @@ for XMLmodel in spmd_modelsf[:]:
         model.add_reaction(SPRMS)
         logging.debug(f"{XMLmodel} SPRMS added")
 
+    for reaction in model.reactions:
+        if "biomass" in reaction.name:
+            max_growth_rate = model.optimize().objective_value
+            obj = reaction.id
+            reaction.bounds = max_growth_rate*0.01,max_growth_rate*0.01
+
     model.add_boundary(model.metabolites.spm_c, type = "demand")
     try: 
         model.objective = model.reactions.SPMS
@@ -102,16 +104,23 @@ for XMLmodel in spmd_modelsf[:]:
     flux1 = model.optimize().objective_value
     
     model.objective = model.reactions.SPRMS
-    flux2 = model.optimize().objective_value
-    if flux2 >0:
-        print(f"{XMLmodel} SPMS -> {flux1}, SPRMS -> {flux2}")
+    #flux2 = model.optimize().objective_value
+    solution = model.optimize()
+    flux2 = solution.fluxes["SPRMS"]
+    try:
+        growth_rate = solution.fluxes[obj]
+    except KeyError:
+        grow_rate = "Unknown"
+
+    if flux2 > 0:
+        print(f"{XMLmodel} SPMS -> {flux1}, SPRMS -> {flux2}, {growth_rate=}")
     else:
         not_prod += 1
     model_data[XMLmodel] = (flux2,0)
 with open("spmd_models.txt","w") as f:
     f.writelines([f"{x}\n" for x in spmd_modelsf])
 
-print(f"{not_prod/len(spmd_modelsf)*100} % not producer of spm_c")
+print(f"{not_prod/len(spmd_modelsf)*100} % not producer of spmd_c")
 model_data = dict(sorted(model_data.items(), key=lambda item: item[1][0], reverse = True))	
 
 with open("GSM_choice.csv","w") as file:
@@ -120,7 +129,5 @@ with open("GSM_choice.csv","w") as file:
     for key,value in model_data.items():
         writer.writerow([key,value[0],value[1]])
     
-stop = time.perf_counter()
-print(f"Done in {stop-start}s")
 
 # %%
