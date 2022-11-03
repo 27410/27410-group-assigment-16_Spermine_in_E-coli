@@ -38,7 +38,9 @@ Heterologuous_metabolites = {
 }
 
 not_prod = 0
+no_dev = 0
 model_data = dict()
+
 for XMLmodel in spmd_modelsf[:]:
 
     if f"GSM/{XMLmodel}.xml" not in glob.glob("GSM/*.xml"):
@@ -87,47 +89,75 @@ for XMLmodel in spmd_modelsf[:]:
         model.add_reaction(SPRMS)
         logging.debug(f"{XMLmodel} SPRMS added")
 
+    biomass_eq = "null"
     for reaction in model.reactions:
-        if "biomass" in reaction.name:
-            max_growth_rate = model.optimize().objective_value
-            obj = reaction.id
-            reaction.bounds = max_growth_rate*0.01,max_growth_rate*0.01
+        if "biomass" in reaction.name.lower():
+            #max_growth_rate = model.optimize().objective_value
+            biomass_eq = reaction.id
+            #reaction.bounds = max_growth_rate*0.1,max_growth_rate*0.1
+
+    if biomass_eq == "null":
+        print(f"No biomass equation found: {XMLmodel}")
+        print(model.objective)
+        continue
 
     model.add_boundary(model.metabolites.spm_c, type = "demand")
     try: 
-        model.objective = model.reactions.SPMS
+        r = model.reactions.SPMS
     except AttributeError:
         print(f"{XMLmodel} no SPMS")
         not_prod += 1
         continue
-
+    """
     flux1 = model.optimize().objective_value
-    
+
     model.objective = model.reactions.SPRMS
     #flux2 = model.optimize().objective_value
     solution = model.optimize()
     flux2 = solution.fluxes["SPRMS"]
-    try:
-        growth_rate = solution.fluxes[obj]
-    except KeyError:
-        grow_rate = "Unknown"
+    """
+    #model.solver = "cplex"
+   
+    max_growth_rate = model.optimize().objective_value
+    model.objective = model.reactions.SPRMS
+    max_spm_rate = model.optimize().objective_value
 
-    if flux2 > 0:
-        print(f"{XMLmodel} SPMS -> {flux1}, SPRMS -> {flux2}, {growth_rate=}")
+    try:
+        ratio = max_spm_rate/max_growth_rate
+    except ZeroDivisionError:
+        print(f"{XMLmodel} no growth -> out")
+        continue
+
+    quadratic_objective = model.problem.Objective(
+    1 * model.reactions.SPRMS.flux_expression + ratio * model.reactions.get_by_id(biomass_eq).flux_expression,
+    direction='max')
+    model.objective = quadratic_objective
+    print(f"{XMLmodel} {model.objective}")
+    solution = model.optimize(objective_sense=None)
+
+    flux1 = solution.fluxes["SPMS"]
+    flux2 = solution.fluxes["SPRMS"]
+    growth_rate = solution.fluxes[biomass_eq]
+    print(f"{XMLmodel} SPMS -> {flux1}, SPRMS -> {flux2}, {growth_rate=}")
+   
+    if growth_rate > 0:
+        model_data[XMLmodel] = (flux2,growth_rate,0)
     else:
-        not_prod += 1
-    model_data[XMLmodel] = (flux2,0)
+        no_dev += 1
+
 with open("spmd_models.txt","w") as f:
     f.writelines([f"{x}\n" for x in spmd_modelsf])
 
 print(f"{not_prod/len(spmd_modelsf)*100} % not producer of spmd_c")
+print(f"{no_dev/len(spmd_modelsf)*100} % no LP with growth > 0")
+
 model_data = dict(sorted(model_data.items(), key=lambda item: item[1][0], reverse = True))	
 
-with open("GSM_choice.csv","w") as file:
+with open("GSM_choiceV2.csv","w") as file:
     writer = csv.writer(file)
-    writer.writerow(["GSM","SPRMS flux","Memote score"])
+    writer.writerow(["GSM","SPRMS flux","growth rate","Memote score"])
     for key,value in model_data.items():
-        writer.writerow([key,value[0],value[1]])
+        writer.writerow([key,value[0],value[1],value[2]])
     
 
 # %%
