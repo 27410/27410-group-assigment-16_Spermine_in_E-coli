@@ -85,7 +85,7 @@ diff-match-patch @ file:///Users/ktietz/demo/mc3/conda-bld/diff-match-patch_1630
 diskcache==5.4.0
 distlib==0.3.6
 distributed @ file:///opt/conda/conda-bld/distributed_1647271944416/work
-docplex==2.23.221
+docplex==2.23.222
 docutils @ file:///opt/concourse/worker/volumes/live/c87e10af-317d-45cb-7142-3d02053858ee/volume/docutils_1620827978243/work
 entrypoints @ file:///opt/concourse/worker/volumes/live/78b2c4ae-da17-4aa7-7fdc-138f840abf07/volume/entrypoints_1649926486598/work
 Escher==1.7.3
