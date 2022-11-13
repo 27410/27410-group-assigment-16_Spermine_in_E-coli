@@ -2,6 +2,8 @@
 from cobra.io import read_sbml_model
 import logging 
 import time
+import random
+import os 
 
 def main():
     level = logging.INFO	
@@ -55,17 +57,28 @@ def main():
     1 * model.reactions.SPRMS.flux_expression + ratio * model.reactions.get_by_id(biomass_eq).flux_expression,
     direction='max')
 
-    model.objective = quadratic_objective
-    solution = model.optimize(objective_sense=None)
-
     from cobra.flux_analysis import flux_variability_analysis
-    start = time.perf_counter()
-    a = [model.reactions.SPRMS,model.reactions.GSPMDS,model.reactions.GTHS]
-    info = flux_variability_analysis(model,model.reactions[:100],loopless=True)
-    stop = time.perf_counter()
-    print(info)
 
-    print(f"Done in {stop-start}s")
+    index = random.randint(0,len(model.reactions)) - 100
+    a = [model.reactions.SPRMS,model.reactions.GSPMDS,model.reactions.GTHS] + model.reactions[index:index+20]
+
+    model.objective = "BIOMASS_Ec_iAF1260_core_59p81M"
+    start = time.perf_counter()
+    FVA1 = flux_variability_analysis(model,a,loopless=True)
+    FVA1.to_csv(f"FVA_BIOMASS.csv")
+
+    print(model.objective)
+    stop = time.perf_counter()
+    print(f"FV1 Done in {stop-start}s")
+    
+    model.objective = quadratic_objective
+    start = time.perf_counter()
+    FVA2 = flux_variability_analysis(model,a,loopless=True)
+    FVA2.to_csv(f"FVA_Q_OBJECTIVE.csv")
+    print(model.objective)
+
+    stop = time.perf_counter()
+    print(f"FVA2 Done in {stop-start}s")
 
 if __name__ == "__main__":
         main()
