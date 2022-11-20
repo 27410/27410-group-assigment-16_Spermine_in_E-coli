@@ -4,54 +4,25 @@ import logging
 import time
 import random
 import os 
+from Heterologuous_pathway_addition import model_assertion
+
 
 def main():
     level = logging.INFO	
     fmt = '[%(levelname)s] %(asctime)s - %(message)s'
     logging.basicConfig(level =level, format=fmt)
 
-    from cobra import Reaction, Metabolite
-
+    model_assertion("GSM/iAF1260b.xml")
     model = read_sbml_model("GSM/iAF1260b.xml")
 
-    #-------------- Adding spm_c and spm_e to model's metabolites --------------
-
-    Spermine_c = Metabolite(id="spm_c",name="spermine",compartment="c")
-    Spermine_e = Metabolite(id="spm_e",name="spermine",compartment="e")
-
-    model.add_metabolites([Spermine_c,Spermine_e])
-
-    #-------------- Adding EX_sprm_e to model's reactions --------------
-    EX_sprm_e = Reaction("EX_sprm_e")
-    EX_sprm_e.add_metabolites({
-        model.metabolites.spm_e:-1,
-    })
-    model.add_reaction(EX_sprm_e)
-    logging.debug(f"EX_sprm_e added")
-
-    #-------------- Adding SPRMS reaction --------------
-
-    SPRMS = Reaction("SPRMS")
-    SPRMS.add_metabolites({
-        model.metabolites.ametam_c:-1,
-        model.metabolites.spmd_c: -1,
-
-        model.metabolites.get_by_id("5mta_c"): 1,
-        model.metabolites.h_c:1,
-        model.metabolites.spm_c:1
-    })
-    model.add_reaction(SPRMS)
-
-    model.add_boundary(model.metabolites.spm_c, type = "demand")
-
     biomass_eq = "BIOMASS_Ec_iAF1260_core_59p81M"
-
 
     max_growth_rate = model.optimize().objective_value
     model.objective = model.reactions.SPRMS
     max_spm_rate = model.optimize().objective_value
 
     ratio = max_spm_rate/max_growth_rate
+    assert ratio > 0
 
     quadratic_objective = model.problem.Objective(
     1 * model.reactions.SPRMS.flux_expression + ratio * model.reactions.get_by_id(biomass_eq).flux_expression,
@@ -60,7 +31,7 @@ def main():
     from cobra.flux_analysis import flux_variability_analysis
 
     index = random.randint(0,len(model.reactions)) - 100
-    a = [model.reactions.SPRMS,model.reactions.GSPMDS,model.reactions.GTHS] + model.reactions[index:index+20]
+    a = [model.reactions.SPRMS,model.reactions.SPMS,model.reactions.GSPMDS,model.reactions.GTHS,model.reactions.ORNDC] + model.reactions[index:index+50]
 
     model.objective = "BIOMASS_Ec_iAF1260_core_59p81M"
     start = time.perf_counter()
