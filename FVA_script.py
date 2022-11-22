@@ -31,11 +31,19 @@ def main():
     from cobra.flux_analysis import flux_variability_analysis
 
     index = random.randint(0,len(model.reactions)) - 100
-    a = [model.reactions.SPRMS,model.reactions.SPMS,model.reactions.GSPMDS,model.reactions.GTHS,model.reactions.ORNDC] + model.reactions[index:index+50]
+    
+    a = ["NOS","GGPTRCS","SPMDAT1","AO","PTRCTA","PTOR","POLYAO","SPDH","CSPMDDH","GSPMDS","TRYS","RE2296C","GGT6","GGCLUT2","THFGLUH","SMOX","HSPMS"]
+    for id in a[:]:
+        try:
+            model.reactions.get_by_id(id)
+        except KeyError:
+            a.remove(id)
+
+    to_analyze = a + model.reactions[index:index+50]
 
     model.objective = "BIOMASS_Ec_iAF1260_core_59p81M"
     start = time.perf_counter()
-    FVA1 = flux_variability_analysis(model,a,loopless=True)
+    FVA1 = flux_variability_analysis(model,to_analyze,loopless=True)
     FVA1.to_csv(f"FVA_BIOMASS.csv")
 
     print(model.objective)
@@ -44,7 +52,7 @@ def main():
     
     model.objective = quadratic_objective
     start = time.perf_counter()
-    FVA2 = flux_variability_analysis(model,a,loopless=True)
+    FVA2 = flux_variability_analysis(model,to_analyze,loopless=True)
     FVA2.to_csv(f"FVA_Q_OBJECTIVE.csv")
     print(model.objective)
 

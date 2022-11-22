@@ -13,7 +13,7 @@ fmt = '[%(levelname)s] %(asctime)s - %(message)s'
 logging.basicConfig(level =level, format=fmt)
 
 spmd_models = list()
-with open("spmd_models.txt","r") as f:
+with open("list_spmd_models.txt","r") as f:
     for line in f.readlines():
         if line[0] == "i":
             spmd_models.append(line.split("\n")[0])
@@ -154,7 +154,7 @@ print(f"{no_dev/len(spmd_modelsf)*100} % no LP with growth > 0")
 model_data = dict(sorted(model_data.items(), key=lambda item: item[1][0], reverse = True))	
 
 #mmol / [gDW h] (concentration per gram dry weight of cells and hour).
-with open("GSM_choiceV2.csv","w") as file:
+with open("GSM_choice.csv","w") as file:
     writer = csv.writer(file)
     writer.writerow(["GSM","SPRMS flux","growth rate","Memote score"])
     for key,value in model_data.items():
