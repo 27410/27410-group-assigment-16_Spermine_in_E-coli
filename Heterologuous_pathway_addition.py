@@ -42,7 +42,9 @@ def main(xml_model = "GSM/iAF1260b.xml"):
     write_sbml_model(model,xml_model)
 
 def model_assertion(xml_model = "GSM/iAF1260b.xml"):
-   
+    
+    #------------- Security - Verify that requierements for Spermine production are fullfiled -------------
+
     model = read_sbml_model(xml_model)
 
     assert "spm_e" in [x.id for x in model.metabolites]

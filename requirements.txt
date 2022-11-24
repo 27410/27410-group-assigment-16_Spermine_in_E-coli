@@ -15,6 +15,7 @@ arrow @ file:///opt/conda/conda-bld/arrow_1649166651673/work
 astroid @ file:///opt/concourse/worker/volumes/live/5aff3c6b-d8ac-4e74-4846-0f446794397d/volume/astroid_1628063157520/work
 astropy @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_906836d0-ceb2-4914-9bb6-ba833df0befasz7z38b2/croots/recipe/astropy_1650891084492/work
 asttokens @ file:///opt/conda/conda-bld/asttokens_1646925590279/work
+astunparse==1.6.3
 async-timeout @ file:///tmp/build/80754af9/async-timeout_1637851218186/work
 atomicwrites==1.4.0
 attrs @ file:///opt/conda/conda-bld/attrs_1642510447205/work
@@ -220,6 +221,7 @@ olefile @ file:///Users/ktietz/demo/mc3/conda-bld/olefile_1629805411829/work
 openpyxl @ file:///tmp/build/80754af9/openpyxl_1632777717936/work
 optlang==1.5.2
 packaging @ file:///tmp/build/80754af9/packaging_1637314298585/work
+panda==0.3.1
 pandas==1.4.2
 pandocfilters @ file:///opt/conda/conda-bld/pandocfilters_1643405455980/work
 panel @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_542321d7-ae9d-4c93-a404-5bdf5486fcbblwejol1f/croots/recipe/panel_1650637166735/work

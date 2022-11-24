@@ -4,6 +4,7 @@ from cobra.flux_analysis import production_envelope
 import matplotlib as plt 
 import math
 
+# --------------- Extracting data from the model and setting up quadratic objective ---------------
 model = read_sbml_model("GSM/iAF1260b.xml")
 
 max_growth_rate = model.optimize().objective_value
@@ -21,6 +22,7 @@ direction='max')
 
 model.objective = quadratic_objective
 
+# --------------- Plotting phenotypic phase plane for 4 different carbon sources depending on O2 uptake ---------------
 def plot():
     global model
 
@@ -28,7 +30,7 @@ def plot():
     carbon_exchange = {"EX_glc__D_e":"D-Glucose","EX_gal_e":"Galactose","EX_sucr_e":"Sucrose","EX_lcts_e":"Lactose"}
 
     row = col = int(math.sqrt(len(carbon_exchange)))
-    fig, axes = plt.subplots(nrows=2, ncols=2,figsize=(10, 10))
+    fig, axes = plt.subplots(nrows=row, ncols=col,figsize=(10, 10))
     fig.tight_layout(pad=3.0)
 
     i = j = 0
@@ -45,6 +47,7 @@ def plot():
             j= 0
             i +=1
 
+# --------------- Get needed medium composition + yield of Spermine in different units ---------------
 def get_summary():
     global model
     solution = model.optimize()
